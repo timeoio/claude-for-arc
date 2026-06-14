@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "Bash(node --input-type=module)",
+      "Bash(node)",
+      "Bash(python3 -c ' *)",
+      "WebSearch",
+      "WebFetch(domain:gist.github.com)",
+      "Read(//Users/timeo/Library/Application Support/Arc/User Data/Default/Extensions/fcoeoabgfenejglbffodgkkbkcdhcgfn/1.0.75_0/**)",
+      "Read(//Users/timeo/Library/Application Support/Arc/User Data/Default/Extensions/fcoeoabgfenejglbffodgkkbkcdhcgfn/1.0.75_0/assets/**)",
+      "Bash(chmod +x \"/Users/timeo/Documents/claude for arc/patch.sh\")",
+      "Bash(bash patch.sh)",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(gh repo *)",
+      "Bash(git --version)",
+      "Read(//usr/local/bin/**)",
+      "Bash(grep -v \"^.$\")"
+    ]
+  }
+}

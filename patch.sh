@@ -104,10 +104,15 @@ if 'permissions' in m:
 # Remove update_url so Arc accepts it as an unpacked extension
 m.pop('update_url', None)
 
-# Add our Arc panel content script (on all pages, not just claude.ai)
+# Keep the key so the extension ID stays identical to the official one → auth works
+# (user must uninstall the official Arc extension to avoid conflict)
+
+# Rename so it's identifiable
+m['name'] = 'Claude for Arc'
+
+# Add our Arc panel content script (on all http/https pages)
 arc_cs = {
-    "matches": ["<all_urls>"],
-    "exclude_matches": ["chrome://*/*", "arc://*/*", "chrome-extension://*/*"],
+    "matches": ["http://*/*", "https://*/*"],
     "js": ["arc-panel.js"],
     "css": ["arc-panel.css"],
     "run_at": "document_idle",
