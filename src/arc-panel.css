@@ -1,8 +1,0 @@
-/*
- * arc-panel.css
- * Injected alongside arc-panel.js — only used for the squeeze mode
- * margin transition on the host document.
- * The actual panel styles live inside the Shadow DOM in arc-panel.js.
- */
-
-/* intentionally minimal — shadow DOM handles all panel styles */

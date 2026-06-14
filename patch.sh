@@ -110,26 +110,6 @@ m.pop('update_url', None)
 # Rename so it's identifiable
 m['name'] = 'Claude for Arc'
 
-# Add our Arc panel content script (on all http/https pages)
-arc_cs = {
-    "matches": ["http://*/*", "https://*/*"],
-    "js": ["arc-panel.js"],
-    "css": ["arc-panel.css"],
-    "run_at": "document_idle",
-    "all_frames": False
-}
-
-# Prepend so it loads before the extension's own content scripts
-m['content_scripts'] = [arc_cs] + m.get('content_scripts', [])
-
-# Make arc-panel.js/css web-accessible just in case
-war = m.get('web_accessible_resources', [])
-war.append({
-    "matches": ["<all_urls>"],
-    "resources": ["arc-panel.js", "arc-panel.css"]
-})
-m['web_accessible_resources'] = war
-
 with open(manifest_path, 'w') as f:
     json.dump(m, f, indent=2)
 
@@ -160,12 +140,6 @@ ${ORIGINAL}
 JSEOF
 
 success "service-worker-loader.js patched"
-
-# ── Copy our content scripts ──────────────────────────────────────────────────
-info "Copying Arc panel scripts…"
-cp "$SCRIPT_DIR/src/arc-panel.js"  "$OUT_DIR/arc-panel.js"
-cp "$SCRIPT_DIR/src/arc-panel.css" "$OUT_DIR/arc-panel.css"
-success "arc-panel.js + arc-panel.css copied"
 
 # ── Done ─────────────────────────────────────────────────────────────────────
 echo ""
