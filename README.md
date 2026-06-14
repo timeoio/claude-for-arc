@@ -57,6 +57,8 @@ Then in Arc:
 4. Select the `claude-arc-patched/` folder
 5. Press **⌘E** on any page — Claude opens ✨
 
+> ⚠️ **If you had Claude installed in Arc before:** you'll see two Claude entries in `arc://extensions`. Disable the official one (grey toggle) and keep only **Claude for Arc** active.
+
 ---
 
 ## Usage
