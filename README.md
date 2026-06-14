@@ -1,12 +1,11 @@
 <div align="center">
-  <img src="assets/banner.png" alt="Claude for Arc" width="600"/>
 
   <h1>Claude for Arc</h1>
   <p>The official Claude for Chrome extension, natively integrated into Arc Browser.</p>
 
-  <img src="https://img.shields.io/badge/Arc_Browser-compatible-5B5EA6?style=flat-square&logo=arc&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Arc_Browser-compatible-5B5EA6?style=flat-square"/>
   <img src="https://img.shields.io/badge/Claude-1.0.75-CC785C?style=flat-square"/>
-  <img src="https://img.shields.io/badge/MV3-Manifest_V3-4285F4?style=flat-square"/>
+  <img src="https://img.shields.io/badge/Manifest-V3-4285F4?style=flat-square"/>
   <img src="https://img.shields.io/badge/license-MIT-22c55e?style=flat-square"/>
 </div>
 
