@@ -7,7 +7,7 @@
  */
 
 if (!globalThis.chrome?.sidePanel) {
-  const PANEL_W = 420;
+  const PANEL_W = 436;
   const _panelPaths = new Map(); // tabId -> path
   let _panelWindowId = null;
   let _mainWindowId  = null;
