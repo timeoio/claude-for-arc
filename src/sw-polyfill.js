@@ -7,99 +7,92 @@
  */
 
 if (!globalThis.chrome?.sidePanel) {
-  const PANEL_W = 400;
-  const _panelPaths = new Map();  // tabId -> path
+  const PANEL_W = 420;
+  const _panelPaths = new Map(); // tabId -> path
   let _panelWindowId = null;
-  let _mainWindowId = null;
-  let _boundsListenerActive = false;
+  let _mainWindowId  = null;
+  let _syncing       = false;
 
-  // ── Keep popup flush to the right of the main window ──────────────────
-  const _syncBounds = async () => {
+  // ── Sync popup position to main window ──────────────────────────────────
+  const _syncBounds = async (windowId) => {
     if (!_panelWindowId || !_mainWindowId) return;
+    if (windowId === _panelWindowId) return; // ignore popup's own moves
+    if (windowId !== _mainWindowId)   return; // ignore unrelated windows
+    if (_syncing) return;
+    _syncing = true;
     try {
-      const [main, panel] = await Promise.all([
-        chrome.windows.get(_mainWindowId),
-        chrome.windows.get(_panelWindowId),
-      ]);
-      if (!main || !panel) return;
-      if (main.state === 'fullscreen' || main.state === 'maximized') return;
-
-      const targetLeft = main.left + main.width - PANEL_W;
-      const targetTop  = main.top;
-      const targetH    = main.height;
-
-      if (
-        panel.left   !== targetLeft ||
-        panel.top    !== targetTop  ||
-        panel.height !== targetH
-      ) {
-        await chrome.windows.update(_panelWindowId, {
-          left:   targetLeft,
-          top:    targetTop,
-          height: targetH,
-          width:  PANEL_W,
-        });
-      }
+      const main = await chrome.windows.get(_mainWindowId);
+      if (!main || main.state === 'fullscreen' || main.state === 'minimized') return;
+      await chrome.windows.update(_panelWindowId, {
+        left:   main.left + main.width - PANEL_W,
+        top:    main.top,
+        width:  PANEL_W,
+        height: main.height,
+      });
     } catch {
-      // panel was closed
       _panelWindowId = null;
+      chrome.windows.onBoundsChanged.removeListener(_syncBounds);
+    } finally {
+      _syncing = false;
     }
-  };
-
-  const _startSync = () => {
-    if (_boundsListenerActive) return;
-    _boundsListenerActive = true;
-    chrome.windows.onBoundsChanged.addListener(_syncBounds);
-  };
-
-  const _stopSync = () => {
-    _boundsListenerActive = false;
-    chrome.windows.onBoundsChanged.removeListener(_syncBounds);
   };
 
   // ── Open / toggle panel ────────────────────────────────────────────────
   const _openPanel = async (tabId) => {
     // Toggle: close if already open
     if (_panelWindowId !== null) {
-      try {
-        await chrome.windows.remove(_panelWindowId);
-      } catch { /* already closed */ }
+      try { await chrome.windows.remove(_panelWindowId); } catch { /* already closed */ }
       _panelWindowId = null;
-      _stopSync();
+      chrome.windows.onBoundsChanged.removeListener(_syncBounds);
       return;
     }
 
     const path = _panelPaths.get(tabId) ?? `sidepanel.html?tabId=${tabId}`;
     const url  = chrome.runtime.getURL(path);
 
-    // Get main window bounds
-    let left = 1100, top = 0, height = 900;
+    // Get the Arc window from the tab (most reliable from service worker)
+    let left = 900, top = 0, height = 800;
     try {
-      const win = await chrome.windows.getCurrent({ populate: false });
+      const tab = await chrome.tabs.get(tabId);
+      const win = await chrome.windows.get(tab.windowId);
       _mainWindowId = win.id;
-      left   = (win.left ?? 0) + (win.width ?? 1500) - PANEL_W;
+      left   = (win.left ?? 0) + (win.width ?? 1320) - PANEL_W;
       top    = win.top ?? 0;
-      height = win.height ?? 900;
+      height = win.height ?? 800;
     } catch { /* use defaults */ }
 
     try {
+      // Create first, then force position — macOS ignores create() coords
       const popup = await chrome.windows.create({
         url,
-        type:   'popup',
-        width:  PANEL_W,
+        type:    'popup',
+        width:   PANEL_W,
         height,
-        left,
-        top,
         focused: true,
       });
       _panelWindowId = popup.id ?? null;
-      _startSync();
+
+      // macOS restores window to last position — force correct bounds multiple times
+      const _forcePosition = async () => {
+        if (!_panelWindowId) return;
+        try {
+          await chrome.windows.update(_panelWindowId, { left, top, width: PANEL_W, height });
+        } catch { /* popup already closed */ }
+      };
+
+      // Fire immediately, then again after macOS restoration animation
+      await _forcePosition();
+      setTimeout(_forcePosition, 150);
+      setTimeout(_forcePosition, 400);
+
+      // Start syncing position
+      chrome.windows.onBoundsChanged.addListener(_syncBounds);
 
       // Clean up when popup is closed by user
       const onRemoved = (windowId) => {
         if (windowId === _panelWindowId) {
           _panelWindowId = null;
-          _stopSync();
+          chrome.windows.onBoundsChanged.removeListener(_syncBounds);
           chrome.windows.onRemoved.removeListener(onRemoved);
         }
       };
@@ -109,7 +102,7 @@ if (!globalThis.chrome?.sidePanel) {
     }
   };
 
-  // ── Shim ──────────────────────────────────────────────────────────────
+  // ── Shim ────────────────────────────────────────────────────────────────
   chrome.sidePanel = {
     setOptions: ({ tabId, path } = {}) => {
       if (tabId != null && path) _panelPaths.set(tabId, path);
