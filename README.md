@@ -88,11 +88,6 @@ sw-polyfill.js (service worker)
         setOptions() → stores the sidepanel.html path
         open({tabId}) → sends __CLAUDE_ARC_OPEN__ message to content script
 
-arc-panel.js (content script, Shadow DOM)
-  ├── Creates a floating sidebar (isolated from page styles)
-  ├── Listens for __CLAUDE_ARC_OPEN__ → loads sidepanel.html in iframe
-  ├── Handles resize, squeeze/overlay toggle, ⌘E shortcut
-  └── Persists state in chrome.storage.local
 ```
 
 ---
